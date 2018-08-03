@@ -1,0 +1,19 @@
+Bootstrap: docker
+From: openjdk:8-jdk-slim
+
+%files
+	cassandra_schema.avsc
+	jar-files
+	tmp_spark_submit.sh
+%environment
+	SPARK_HOME=/opt/spark
+	export SPARK_HOME
+%post
+	# get spark and put it into spark home
+	wget http://apache.mirror.anlx.net/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz 
+	tar xvf spark-2.3.1-bin-hadoop2.7.tgz
+	rm -r spark-2.3.1-bin-hadoop2.7.tgz
+	mv spark-2.3.1-bin-hadoop2.7 /opt/spark
+%runscript
+	cd /
+	./tmp_spark_submit.sh
