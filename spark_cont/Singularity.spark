@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: openjdk:8-jdk-slim
+From: openjdk:8-jdk-stretch
 
 %files
 	cassandra_schema.avsc
