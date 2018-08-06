@@ -1,5 +1,5 @@
 Bootstrap: docker
-From: openjdk:8-jdk-slim
+From: openjdk:8-jdk-stretch
 
 %files
 	cassandra_schema.avsc
@@ -14,6 +14,7 @@ From: openjdk:8-jdk-slim
 	tar xvf spark-2.3.1-bin-hadoop2.7.tgz
 	rm -r spark-2.3.1-bin-hadoop2.7.tgz
 	mv spark-2.3.1-bin-hadoop2.7 /opt/spark
+
 %runscript
 	cd /
 	./tmp_spark_submit.sh
