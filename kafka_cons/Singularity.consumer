@@ -17,7 +17,7 @@ From:alpine
 	if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
 	rm -r /root/.cache
 	
-	pip3 install kafka-python
+	pip3 install kafka-python cassandra-driver
 	# download avro
 	wget http://mirror.vorboss.net/apache/avro/avro-1.8.2/py3/avro-python3-1.8.2.tar.gz
 	# unpack avro
