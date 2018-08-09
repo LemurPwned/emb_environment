@@ -1,0 +1,34 @@
+Bootstrap: docker
+From: wurstmeister/base
+
+%files
+	start-zk.sh /usr/bin/start-zk.sh
+
+%environment
+	ZOOKEEPER_VERSION=3.4.10
+	ZOOKEEPER_HOME=$HOME/zookeeper-${ZOOKEEPER_VERSION}
+	JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+	export JAVA_HOME ZOOKEEPER_HOME ZOOKEEPER_VERSION
+
+%runscript
+#	export ZOOKEEPER_VERSION=3.4.10
+#	export ZOOKEEPER_HOME=$HOME/zookeeper-${ZOOKEEPER_VERSION}
+#	export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+	
+	cd $HOME
+	wget http://apache.mirrors.nublue.co.uk/zookeeper/zookeeper-${ZOOKEEPER_VERSION}/zookeeper-${ZOOKEEPER_VERSION}.tar.gz
+	wget https://www.apache.org/dist/zookeeper/KEYS 
+	wget https://www.apache.org/dist/zookeeper/zookeeper-${ZOOKEEPER_VERSION}/zookeeper-${ZOOKEEPER_VERSION}.tar.gz.asc 
+	wget https://www.apache.org/dist/zookeeper/zookeeper-${ZOOKEEPER_VERSION}/zookeeper-${ZOOKEEPER_VERSION}.tar.gz.md5
+	# verify download
+	md5sum -c zookeeper-${ZOOKEEPER_VERSION}.tar.gz.md5
+	gpg --import KEYS 
+	gpg --verify zookeeper-${ZOOKEEPER_VERSION}.tar.gz.asc
+	
+	# install
+	tar -xzf zookeeper-${ZOOKEEPER_VERSION}.tar.gz -C $HOME
+	#configure
+	mv $HOME/zookeeper-${ZOOKEEPER_VERSION}/conf/zoo_sample.cfg $HOME/zookeeper-${ZOOKEEPER_VERSION}/conf/zoo.cfg
+	sed  -i "s|/tmp/zookeeper|$ZOOKEEPER_HOME/data|g" $ZOOKEEPER_HOME/conf/zoo.cfg; mkdir $ZOOKEEPER_HOME/data
+	cd $HOME/zookeeper-${ZOOKEEPER_VERSION}
+	/usr/sbin/sshd && bash /usr/bin/start-zk.sh
