@@ -1,0 +1,16 @@
+Bootstrap:docker
+From:anapsix/alpine-java:8_jdk
+
+%environment
+	SCALA_VERSION=2.12
+	KAFKA_VERSION=2.0.0
+	KAFKA_HOME=$HOME/kafka_${SCALA_VERSION}-${KAFKA_VERSION}
+	KAFKA_LOG=$HOME/kafka.log
+	export SCALA_VERSION KAFKA_VERSION KAFKA_HOME KAFKA_LOG 
+
+%post 
+	apk add --no-cache bash
+%runscript
+	cd /
+	echo $KAFKA_HOME
+	$KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties

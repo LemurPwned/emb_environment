@@ -1,0 +1,45 @@
+Bootstrap:docker
+From:anapsix/alpine-java:8_jdk
+
+%environment
+	SCALA_VERSION=2.12
+	KAFKA_VERSION=2.0.0
+	KAFKA_HOME=$HOME/kafka_${SCALA_VERSION}-${KAFKA_VERSION}
+	KAFKA_LOG=$HOME/kafka.log
+	export SCALA_VERSION KAFKA_VERSION KAFKA_HOME KAFKA_LOG 
+
+%files
+	kafka_producer.py
+	emb_schema.avsc 
+	cassandra_schema.avsc
+	EMB3_dataset_2017
+%post 
+	apk add --no-cache bash
+	# make sure both python and pip are 
+	# properly installed 
+	apk add --no-cache python3 	
+	python3 -m ensurepip && \
+    	rm -r /usr/lib/python*/ensurepip && \
+	pip3 install --upgrade pip setuptools && \
+	if [ ! -e /usr/bin/pip ]; then ln -s pip3 /usr/bin/pip ; fi && \
+	if [[ ! -e /usr/bin/python ]]; then ln -sf /usr/bin/python3 /usr/bin/python; fi && \
+	rm -r /root/.cache
+	
+	pip3 install kafka-python
+	# download avro
+	wget http://mirror.vorboss.net/apache/avro/avro-1.8.2/py3/avro-python3-1.8.2.tar.gz
+	# unpack avro
+	tar xvf avro-python3-1.8.2.tar.gz
+	cd avro-python3-1.8.2
+	python3 setup.py install
+%runscript
+	cd /
+	echo $KAFKA_HOME
+	(($KAFKA_HOME/bin/kafka-server-start.sh $KAFKA_HOME/config/server.properties > $KAFKA_LOG))
+	sleep 120
+	$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic emb
+	sleep 30	
+	$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic spark_emb
+	sleep 15
+	python3 kafka_producer.py
+	

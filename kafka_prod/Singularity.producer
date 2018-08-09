@@ -1,12 +1,13 @@
 Bootstrap:docker
 From:alpine
 
-%files 
+%files
 	kafka_producer.py
 	emb_schema.avsc 
 	cassandra_schema.avsc
 	EMB3_dataset_2017
 %post 
+	apk add --no-cache bash
 	# make sure both python and pip are 
 	# properly installed 
 	apk add --no-cache python3 	
@@ -24,6 +25,7 @@ From:alpine
 	tar xvf avro-python3-1.8.2.tar.gz
 	cd avro-python3-1.8.2
 	python3 setup.py install
+
 %runscript
 	cd /
 	python3 kafka_producer.py
