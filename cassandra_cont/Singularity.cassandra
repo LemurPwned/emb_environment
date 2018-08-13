@@ -1,2 +1,2 @@
 Bootstrap: docker
-From cassandra:3.11
+From: cassandra:3.11
