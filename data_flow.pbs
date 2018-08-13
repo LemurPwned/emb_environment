@@ -1,0 +1,65 @@
+#!/bin/bash
+
+#PBS -N dataFlow
+#PBS -l select=4:ncpus=72
+#PBS -l place=excl
+#PBS -l walltime=01:00:00
+#PBS -A y15-SoHPC
+
+export KAFKA_HOME=$HOME/kafka_2.12-2.0.0
+export SPARK_HOME=$HOME/spark-2.3.1-bin-hadoop2.7
+export SINGULARITY_BUILD=$HOME/singularity_builds
+export COMMON_LOG_DIR=$HOME/common
+export NUM_NODES=4
+export HADOOP_PREFIX=$HOME/hadoop_setup/hadoop-2.8.4
+export HADOOP_CONF_DIR=$HADOOP_PREFIX/etc/hadoop/
+export JAVA_HOME=/lustre/sw/spack/opt/spack/linux-centos7-x86_64/gcc-6.2.0/jdk-8u92-linux-x64-24xtmiygsdlaayomilfa5mnrasmxqlhj
+
+cd $HOME/hadoop_setup/python
+
+module load singularity
+module load anaconda
+module load mpt
+
+python setup-hadoop-env.py
+# save resource manager hostname to $HOME/hostname.txt
+source $HOME/hostname.txt
+export RESOURCE_MANAGER_HOSTNAME
+echo $RESOURCE_MANAGER_HOSTNAME >> $COMMON_LOG_DIR/common.log
+cd $HOME/hadoop_setup
+
+./start_resource_manager.sh
+echo "Started resource manager on 'hostname'" > $HOME/rm.log
+export MPI_SHEPHERD=true
+mpiexec_mpt -n $NUM_NODES -ppn 1 $HOME/hadoop_setup/start_node_manager.sh &
+
+# run zookeeper first
+echo "Starting zookeeper..." >> $COMMON_LOG_DIR/common.log
+singularity run $SINGULARITY_BUILD/zookeeper.simg > $COMMON_LOG_DIR/zookeeper.log &
+sleep 10
+# run kafka server
+echo "Starting kafka server..." >> $COMMON_LOG_DIR/common.log
+singularity run $SINGULARITY_BUILD/kafka_server_jdk.simg > $COMMON_LOG_DIR/kafka_server.log &
+sleep 20
+# run cassandra server
+echo "Starting cassandra server..." >> $COMMON_LOG_DIR/common.log
+singularity run $SINGULARITY_BUILD/cassandra.simg > $COMMON_LOG_DIR/cassandra.log &
+sleep 60
+# create topics 
+$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic emb >> $COMMON_LOG_DIR/common.log
+$KAFKA_HOME/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic spark_emb >> $COMMON_LOG_DIR/common.log
+sleep 2
+# run kafka python consumer
+echo "Starting kafka consumer..." >> $COMMON_LOG_DIR/common.log
+singularity run $SINGULARITY_BUILD/kafka_cons.simg &
+sleep 10
+# run kafka python producer & create topics
+echo "Starting kafka producer..." >> $COMMON_LOG_DIR/common.log
+singularity run $SINGULARITY_BUILD/kafka_prod.simg &
+sleep 10
+# submit spark job 
+echo "Submitted spark job..." >> $COMMON_LOG_DIR/common.log
+cd $HOME/emb_environment/spark_cont/
+./yarn_fat_spark_submit.sh > $COMMON_LOG_DIR/spark_job.log &
+
+sleep 2h
