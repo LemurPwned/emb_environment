@@ -28,5 +28,6 @@ From:alpine
 
 %runscript
 	cd /
+	echo "Starting to produce..."
 	python3 kafka_producer.py
 	

@@ -28,7 +28,9 @@ From:alpine
 %runscript
 	cd /
 	# set up database
+	echo "Setting up the database on Cassandra server..."
 	python3 cassandra_connect.py
 	# run consumer
+	echo "Running consumer..."
 	python3 kafka_consumer.py
 	
