@@ -2,7 +2,7 @@
 
 # Environment for HPC data streaming architecture
 
-## 1. Download needed software
+#### 1. Download needed software
 + Apache Cassandra
 + Apache Kafka
 + Apache Spark
@@ -13,5 +13,5 @@ you change the existing version for the correct version in the corresponding Sin
 $HOME variable for each i.e. KAFKA_HOME, SPARK_HOME, CASSANDRA_HOME must be set properly and <br />
  **be in the directory with writing permissions.**
  
- # 2. Run PBS job
- # 3. All log files are put in $HOME/common directory unless its has been changed in .pbs file
+ #### 2. Run PBS job
+ #### 3. All log files are put in $HOME/common directory unless its has been changed in .pbs file
