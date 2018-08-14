@@ -1,0 +1,22 @@
+Bootstrap: docker
+From: openjdk:8-jdk-alpine
+
+%environment
+	# keep track of the current cassandra version
+	CASSANDRA_VERSION=3.0.17
+	CASSANDRA_HOME=$HOME/apache-cassandra-${CASSANDRA_VERSION}
+	export CASSANDRA_VERSION CASSANDRA_HOME
+%post
+	# bash is needed to execute cassandra
+	apk add --no-cache bash
+	
+%runscript
+	# remove previous logs, otherwise an error occurs
+	rm -rf $CASSANDRA_HOME/logs
+	# this needs to be created by container
+	# for some reason cassandra cannot create it alone
+	mkdir $CASSANDRA_HOME/logs
+	$CASSANDRA_HOME/bin/cassandra -f 
+
+	
+
